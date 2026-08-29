@@ -249,9 +249,10 @@ function dibujarUsuarios(usuarios) {
   cuerpo.innerHTML = usuarios.map(u => `
     <tr>
       <td>${escaparHtml(u.nombre)}</td>
+      <td style="color:#9AA3B8;">${escaparHtml(u.email || '—')}</td>
       <td><span class="chip-tipo">${u.rol}</span></td>
-      <td style="font-family: var(--fuente-mono); font-size:12px; color:#9AA3B8;">${u.id}</td>
       <td class="acciones-fila">
+        <button class="btn-icono" onclick="abrirCambiarPassword('${u.id}', '${escaparHtml(u.nombre)}')">Contraseña</button>
         <button class="btn-icono peligro" onclick="eliminarUsuario('${u.id}', '${escaparHtml(u.nombre)}')">Eliminar</button>
       </td>
     </tr>
@@ -317,5 +318,67 @@ formUsuario.addEventListener('submit', async (e) => {
   }
 
   modalUsuario.classList.remove('activo');
+
+  // Mostrar las credenciales una sola vez para que el admin las copie
+  document.getElementById('credencial-email').value = email;
+  document.getElementById('credencial-password').value = password;
+  document.getElementById('modal-credenciales').classList.add('activo');
+
   cargarUsuarios();
+});
+
+document.getElementById('btn-cerrar-credenciales').addEventListener('click', () => {
+  document.getElementById('modal-credenciales').classList.remove('activo');
+});
+
+document.getElementById('btn-copiar-credenciales').addEventListener('click', () => {
+  const email = document.getElementById('credencial-email').value;
+  const password = document.getElementById('credencial-password').value;
+  navigator.clipboard.writeText(`Correo: ${email}\nContraseña: ${password}`);
+  const boton = document.getElementById('btn-copiar-credenciales');
+  boton.textContent = '¡Copiado!';
+  setTimeout(() => { boton.textContent = 'Copiar ambos'; }, 2000);
+});
+
+// ---- Cambiar contraseña ----
+const modalCambiarPassword = document.getElementById('modal-cambiar-password');
+const formCambiarPassword = document.getElementById('form-cambiar-password');
+
+function abrirCambiarPassword(id, nombre) {
+  document.getElementById('cambiar-password-id').value = id;
+  document.getElementById('texto-cambiar-password').textContent = `Vas a definir una nueva contraseña para ${nombre}.`;
+  document.getElementById('cambiar-password-nueva').value = '';
+  document.getElementById('mensaje-error-password').textContent = '';
+  modalCambiarPassword.classList.add('activo');
+}
+
+document.getElementById('btn-cancelar-password').addEventListener('click', () => {
+  modalCambiarPassword.classList.remove('activo');
+});
+
+formCambiarPassword.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const mensajeError = document.getElementById('mensaje-error-password');
+  const botonGuardar = document.getElementById('btn-guardar-password');
+  mensajeError.textContent = '';
+  botonGuardar.disabled = true;
+  botonGuardar.textContent = 'Guardando...';
+
+  const id_usuario = document.getElementById('cambiar-password-id').value;
+  const password_nueva = document.getElementById('cambiar-password-nueva').value;
+
+  const { data, error } = await supabaseClient.functions.invoke('cambiar-password', {
+    body: { id_usuario, password_nueva }
+  });
+
+  botonGuardar.disabled = false;
+  botonGuardar.textContent = 'Guardar';
+
+  if (error || (data && data.error)) {
+    mensajeError.textContent = (data && data.error) ? data.error : 'No se pudo cambiar la contraseña.';
+    return;
+  }
+
+  modalCambiarPassword.classList.remove('activo');
+  alert('Contraseña actualizada correctamente.');
 });

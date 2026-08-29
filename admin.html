@@ -84,8 +84,8 @@
             <thead>
               <tr>
                 <th>Nombre</th>
+                <th>Correo</th>
                 <th>Rol</th>
-                <th>ID de usuario</th>
                 <th>Acciones</th>
               </tr>
             </thead>
@@ -189,6 +189,48 @@
         <div class="modal-botones">
           <button type="button" class="btn-secundario" id="btn-cancelar-usuario">Cancelar</button>
           <button type="submit" class="btn-primario" id="btn-guardar-usuario">Crear usuario</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: Credenciales recién creadas (se muestra 1 sola vez) -->
+  <div class="modal-fondo" id="modal-credenciales">
+    <div class="modal-caja">
+      <h2>Usuario creado ✓</h2>
+      <p style="color:#9AA3B8; font-size:13px; margin-bottom:16px;">
+        Copia estos datos ahora y entrégaselos a la persona. Por seguridad, no vas a poder ver esta contraseña de nuevo.
+      </p>
+      <div class="campo">
+        <label>Correo</label>
+        <input type="text" id="credencial-email" readonly>
+      </div>
+      <div class="campo">
+        <label>Contraseña</label>
+        <input type="text" id="credencial-password" readonly>
+      </div>
+      <div class="modal-botones">
+        <button type="button" class="btn-primario" id="btn-copiar-credenciales" style="flex:1;">Copiar ambos</button>
+        <button type="button" class="btn-secundario" id="btn-cerrar-credenciales" style="flex:1;">Listo, ya las guardé</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: Cambiar contraseña -->
+  <div class="modal-fondo" id="modal-cambiar-password">
+    <div class="modal-caja">
+      <h2>Cambiar contraseña</h2>
+      <p id="texto-cambiar-password" style="color:#9AA3B8; font-size:13px; margin-bottom:16px;"></p>
+      <form id="form-cambiar-password">
+        <input type="hidden" id="cambiar-password-id">
+        <div class="campo">
+          <label for="cambiar-password-nueva">Nueva contraseña</label>
+          <input type="text" id="cambiar-password-nueva" required minlength="6" placeholder="Mínimo 6 caracteres">
+        </div>
+        <div id="mensaje-error-password" style="color:#E5615A; font-size:13px;"></div>
+        <div class="modal-botones">
+          <button type="button" class="btn-secundario" id="btn-cancelar-password">Cancelar</button>
+          <button type="submit" class="btn-primario" id="btn-guardar-password">Guardar</button>
         </div>
       </form>
     </div>
