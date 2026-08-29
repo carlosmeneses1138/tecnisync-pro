@@ -1,0 +1,320 @@
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap');
+
+:root {
+  --azul-noche: #171B26;
+  --azul-panel: #232A3B;
+  --azul-linea: #313A52;
+  --ambar: #E8A33D;
+  --ambar-brillo: #F5C169;
+  --verde-ok: #4CAF7D;
+  --rojo-error: #E5615A;
+  --blanco-hueso: #F4F5F7;
+  --gris-texto: #9AA3B8;
+
+  --fuente-display: 'Space Grotesk', sans-serif;
+  --fuente-cuerpo: 'Inter', sans-serif;
+  --fuente-mono: 'JetBrains Mono', monospace;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: var(--fuente-cuerpo);
+  min-height: 100vh;
+  display: flex;
+  background: var(--azul-noche);
+  color: var(--blanco-hueso);
+}
+
+/* ============ PANEL IZQUIERDO ============ */
+.panel-marca {
+  flex: 1.1;
+  position: relative;
+  display: none;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 56px;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 15% 25%, rgba(232,163,61,0.10), transparent 45%),
+    var(--azul-noche);
+}
+
+@media (min-width: 860px) {
+  .panel-marca { display: flex; }
+}
+
+.circuito {
+  position: absolute;
+  inset: 0;
+  opacity: 0.35;
+  pointer-events: none;
+}
+
+.marca-eyebrow {
+  font-family: var(--fuente-mono);
+  font-size: 12px;
+  letter-spacing: 0.14em;
+  color: var(--ambar);
+  text-transform: uppercase;
+}
+
+.marca-titulo {
+  font-family: var(--fuente-display);
+  font-weight: 700;
+  font-size: clamp(2.4rem, 4vw, 3.4rem);
+  line-height: 1.05;
+  margin-top: 14px;
+  letter-spacing: -0.01em;
+}
+
+.marca-titulo span { color: var(--ambar); }
+
+.marca-sub {
+  margin-top: 18px;
+  max-width: 380px;
+  color: var(--gris-texto);
+  font-size: 15px;
+  line-height: 1.6;
+}
+
+.marca-stats {
+  position: relative;
+  display: flex;
+  gap: 36px;
+  font-family: var(--fuente-mono);
+}
+
+.marca-stats div span {
+  display: block;
+  font-size: 11px;
+  color: var(--gris-texto);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-bottom: 6px;
+}
+
+.marca-stats div strong {
+  font-size: 20px;
+  color: var(--blanco-hueso);
+  font-weight: 500;
+}
+
+/* ============ PANEL DERECHO (login) ============ */
+.panel-login {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 32px;
+}
+
+.tarjeta-login {
+  width: 100%;
+  max-width: 400px;
+}
+
+.tarjeta-login .marca-eyebrow-movil {
+  display: block;
+  font-family: var(--fuente-mono);
+  font-size: 12px;
+  color: var(--ambar);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+
+@media (min-width: 860px) {
+  .marca-eyebrow-movil { display: none; }
+}
+
+.tarjeta-login h1 {
+  font-family: var(--fuente-display);
+  font-size: 26px;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.tarjeta-login p.instruccion {
+  color: var(--gris-texto);
+  font-size: 14px;
+  margin-bottom: 28px;
+}
+
+/* --- Selector de rol estilo "breaker panel" --- */
+.breaker-bank {
+  display: flex;
+  gap: 8px;
+  background: var(--azul-panel);
+  border: 1px solid var(--azul-linea);
+  border-radius: 10px;
+  padding: 6px;
+  margin-bottom: 28px;
+}
+
+.breaker {
+  flex: 1;
+  background: transparent;
+  border: none;
+  color: var(--gris-texto);
+  font-family: var(--fuente-mono);
+  font-size: 12px;
+  letter-spacing: 0.03em;
+  padding: 10px 6px;
+  border-radius: 7px;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+.breaker .led {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--azul-linea);
+  transition: background 0.15s ease, box-shadow 0.15s ease;
+}
+
+.breaker.activo {
+  background: var(--azul-noche);
+  color: var(--blanco-hueso);
+}
+
+.breaker.activo .led {
+  background: var(--ambar);
+  box-shadow: 0 0 8px var(--ambar);
+}
+
+.campo {
+  margin-bottom: 18px;
+}
+
+.campo label {
+  display: block;
+  font-size: 12px;
+  color: var(--gris-texto);
+  margin-bottom: 7px;
+  letter-spacing: 0.02em;
+}
+
+.campo input {
+  width: 100%;
+  background: var(--azul-panel);
+  border: 1px solid var(--azul-linea);
+  border-radius: 8px;
+  padding: 12px 14px;
+  color: var(--blanco-hueso);
+  font-size: 14px;
+  font-family: var(--fuente-cuerpo);
+  outline: none;
+  transition: border-color 0.15s ease;
+}
+
+.campo input:focus {
+  border-color: var(--ambar);
+}
+
+.campo input::placeholder { color: #5B6478; }
+
+#mensaje-error {
+  color: var(--rojo-error);
+  font-size: 13px;
+  min-height: 18px;
+  margin-bottom: 12px;
+}
+
+.btn-ingresar {
+  width: 100%;
+  background: var(--ambar);
+  color: var(--azul-noche);
+  border: none;
+  border-radius: 8px;
+  padding: 13px;
+  font-family: var(--fuente-cuerpo);
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background 0.15s ease, opacity 0.15s ease;
+}
+
+.btn-ingresar:hover { background: var(--ambar-brillo); }
+.btn-ingresar:disabled { opacity: 0.6; cursor: default; }
+
+.pie-login {
+  margin-top: 22px;
+  text-align: center;
+  font-size: 12px;
+  color: #5B6478;
+  font-family: var(--fuente-mono);
+}
+
+/* ============ Páginas internas (dashboards) ============ */
+.app-shell {
+  min-height: 100vh;
+  width: 100%;
+  background: var(--azul-noche);
+}
+
+.app-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 28px;
+  background: var(--azul-panel);
+  border-bottom: 1px solid var(--azul-linea);
+}
+
+.app-header .marca-eyebrow { margin: 0; }
+
+.app-header .usuario-actual {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  font-size: 13px;
+  color: var(--gris-texto);
+}
+
+.btn-salir {
+  background: transparent;
+  border: 1px solid var(--azul-linea);
+  color: var(--blanco-hueso);
+  padding: 7px 14px;
+  border-radius: 7px;
+  font-size: 13px;
+  cursor: pointer;
+  font-family: var(--fuente-cuerpo);
+}
+
+.btn-salir:hover { border-color: var(--ambar); color: var(--ambar); }
+
+.app-contenido {
+  padding: 48px 28px;
+  max-width: 900px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.app-contenido h1 {
+  font-family: var(--fuente-display);
+  font-size: 30px;
+  margin-bottom: 10px;
+}
+
+.app-contenido p {
+  color: var(--gris-texto);
+  font-size: 15px;
+}
+
+.badge-fase {
+  display: inline-block;
+  margin-top: 24px;
+  padding: 8px 16px;
+  border: 1px dashed var(--azul-linea);
+  border-radius: 20px;
+  font-family: var(--fuente-mono);
+  font-size: 12px;
+  color: var(--ambar);
+}
