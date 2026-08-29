@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TecniSync Pro — Vendedor</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div class="app-shell">
+    <header class="app-header">
+      <p class="marca-eyebrow">TECNISYNC PRO</p>
+      <div class="usuario-actual">
+        <span id="nombre-usuario">Cargando...</span>
+        <button class="btn-salir" onclick="cerrarSesion()">Salir</button>
+      </div>
+    </header>
+
+    <div class="app-contenido">
+      <h1>Módulo de Vendedor</h1>
+      <p>Aquí encontrarás clientes, productos y el registro de tus ventas con firma digital.</p>
+      <div class="badge-fase">FASE 2 EN CONSTRUCCIÓN</div>
+    </div>
+  </div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/supabaseClient.js"></script>
+<script>
+  (async () => {
+    const perfil = await protegerPagina("vendedor");
+    if (perfil) {
+      document.getElementById("nombre-usuario").textContent = perfil.nombre;
+    }
+  })();
+</script>
+</body>
+</html>
