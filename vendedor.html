@@ -18,20 +18,118 @@
 
     <div class="app-contenido">
       <h1>Módulo de Vendedor</h1>
-      <p>Aquí encontrarás clientes, productos y el registro de tus ventas con firma digital.</p>
-      <div class="badge-fase">FASE 2 EN CONSTRUCCIÓN</div>
+      <p class="subtitulo">Gestiona tus clientes, revisa productos y registra ventas.</p>
+
+      <div class="tabs-modulo">
+        <button class="tab-modulo activo" data-vista="clientes">Clientes</button>
+        <button class="tab-modulo" data-vista="productos">Productos</button>
+        <button class="tab-modulo" data-vista="ventas">Ventas</button>
+      </div>
+
+      <!-- VISTA: CLIENTES -->
+      <div class="vista activa" id="vista-clientes">
+        <div class="barra-acciones">
+          <input type="text" class="buscador" id="buscador-clientes" placeholder="Buscar cliente por nombre...">
+          <button class="btn-primario" id="btn-nuevo-cliente">+ Nuevo cliente</button>
+        </div>
+        <div class="tabla-wrap">
+          <table class="tabla-datos">
+            <thead>
+              <tr>
+                <th>Nombre</th>
+                <th>Tipo</th>
+                <th>Teléfono</th>
+                <th>Ciudad</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="tabla-clientes-body">
+              <tr><td colspan="5" class="celda-vacia">Cargando clientes...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- VISTA: PRODUCTOS -->
+      <div class="vista" id="vista-productos">
+        <div class="barra-acciones">
+          <input type="text" class="buscador" id="buscador-productos" placeholder="Buscar producto...">
+        </div>
+        <div class="tabla-wrap">
+          <table class="tabla-datos">
+            <thead>
+              <tr>
+                <th>Producto</th>
+                <th>Categoría</th>
+                <th>Precio</th>
+                <th>Stock</th>
+              </tr>
+            </thead>
+            <tbody id="tabla-productos-body">
+              <tr><td colspan="4" class="celda-vacia">Cargando productos...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- VISTA: VENTAS -->
+      <div class="vista" id="vista-ventas">
+        <div class="tabla-wrap">
+          <table class="tabla-datos">
+            <tbody>
+              <tr><td class="celda-vacia">El registro de ventas con firma y ubicación llega en la próxima fase.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: Nuevo / Editar cliente -->
+  <div class="modal-fondo" id="modal-cliente">
+    <div class="modal-caja">
+      <h2 id="titulo-modal-cliente">Nuevo cliente</h2>
+      <form id="form-cliente">
+        <input type="hidden" id="cliente-id">
+        <div class="campo">
+          <label for="cliente-nombre">Nombre completo o razón social</label>
+          <input type="text" id="cliente-nombre" required>
+        </div>
+        <div class="campo">
+          <label for="cliente-tipo">Tipo</label>
+          <select id="cliente-tipo" class="campo-input">
+            <option value="persona">Persona</option>
+            <option value="empresa">Empresa</option>
+            <option value="hogar">Hogar</option>
+          </select>
+        </div>
+        <div class="campo">
+          <label for="cliente-telefono">Teléfono</label>
+          <input type="text" id="cliente-telefono">
+        </div>
+        <div class="campo">
+          <label for="cliente-email">Correo</label>
+          <input type="email" id="cliente-email">
+        </div>
+        <div class="campo">
+          <label for="cliente-direccion">Dirección</label>
+          <input type="text" id="cliente-direccion">
+        </div>
+        <div class="campo">
+          <label for="cliente-ciudad">Ciudad</label>
+          <input type="text" id="cliente-ciudad">
+        </div>
+        <div id="mensaje-error-cliente" style="color:#E5615A; font-size:13px;"></div>
+        <div class="modal-botones">
+          <button type="button" class="btn-secundario" id="btn-cancelar-cliente">Cancelar</button>
+          <button type="submit" class="btn-primario">Guardar</button>
+        </div>
+      </form>
     </div>
   </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="js/supabaseClient.js"></script>
-<script>
-  (async () => {
-    const perfil = await protegerPagina("vendedor");
-    if (perfil) {
-      document.getElementById("nombre-usuario").textContent = perfil.nombre;
-    }
-  })();
-</script>
+<script src="js/vendedor.js"></script>
 </body>
 </html>
