@@ -18,20 +18,149 @@
 
     <div class="app-contenido">
       <h1>Módulo de Administrador</h1>
-      <p>Aquí tendrás control total: gestión de usuarios, todas las ventas, servicios técnicos, productos y reportes.</p>
-      <div class="badge-fase">FASE 2 EN CONSTRUCCIÓN</div>
+      <p class="subtitulo">Control total: productos, servicios y usuarios del sistema.</p>
+
+      <div class="tabs-modulo">
+        <button class="tab-modulo activo" data-vista="productos">Productos</button>
+        <button class="tab-modulo" data-vista="servicios">Servicios</button>
+        <button class="tab-modulo" data-vista="usuarios">Usuarios</button>
+      </div>
+
+      <!-- VISTA: PRODUCTOS -->
+      <div class="vista activa" id="vista-productos">
+        <div class="barra-acciones">
+          <input type="text" class="buscador" id="buscador-productos" placeholder="Buscar producto...">
+          <button class="btn-primario" id="btn-nuevo-producto">+ Nuevo producto</button>
+        </div>
+        <div class="tabla-wrap">
+          <table class="tabla-datos">
+            <thead>
+              <tr>
+                <th>Producto</th>
+                <th>Categoría</th>
+                <th>Precio</th>
+                <th>Stock</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="tabla-productos-body">
+              <tr><td colspan="5" class="celda-vacia">Cargando productos...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- VISTA: SERVICIOS -->
+      <div class="vista" id="vista-servicios">
+        <div class="barra-acciones">
+          <input type="text" class="buscador" id="buscador-servicios" placeholder="Buscar servicio...">
+          <button class="btn-primario" id="btn-nuevo-servicio">+ Nuevo servicio</button>
+        </div>
+        <div class="tabla-wrap">
+          <table class="tabla-datos">
+            <thead>
+              <tr>
+                <th>Servicio</th>
+                <th>Descripción</th>
+                <th>Precio</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="tabla-servicios-body">
+              <tr><td colspan="4" class="celda-vacia">Cargando servicios...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- VISTA: USUARIOS -->
+      <div class="vista" id="vista-usuarios">
+        <div class="tabla-wrap">
+          <table class="tabla-datos">
+            <thead>
+              <tr>
+                <th>Nombre</th>
+                <th>Rol</th>
+                <th>ID de usuario</th>
+              </tr>
+            </thead>
+            <tbody id="tabla-usuarios-body">
+              <tr><td colspan="3" class="celda-vacia">Cargando usuarios...</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p style="color:#9AA3B8; font-size:13px; margin-top:14px;">
+          Por ahora, para crear un nuevo vendedor o técnico, créalo desde Supabase → Authentication → Users,
+          y avísame su ID para vincularlo con su rol. En una próxima fase vamos a automatizar esto desde aquí mismo.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: Nuevo / Editar producto -->
+  <div class="modal-fondo" id="modal-producto">
+    <div class="modal-caja">
+      <h2 id="titulo-modal-producto">Nuevo producto</h2>
+      <form id="form-producto">
+        <input type="hidden" id="producto-id">
+        <div class="campo">
+          <label for="producto-nombre">Nombre</label>
+          <input type="text" id="producto-nombre" required>
+        </div>
+        <div class="campo">
+          <label for="producto-descripcion">Descripción</label>
+          <input type="text" id="producto-descripcion">
+        </div>
+        <div class="campo">
+          <label for="producto-categoria">Categoría</label>
+          <input type="text" id="producto-categoria" placeholder="Ej: Cámaras, Redes, Accesorios">
+        </div>
+        <div class="campo">
+          <label for="producto-precio">Precio</label>
+          <input type="number" id="producto-precio" step="0.01" required>
+        </div>
+        <div class="campo">
+          <label for="producto-stock">Stock disponible</label>
+          <input type="number" id="producto-stock" value="0" required>
+        </div>
+        <div id="mensaje-error-producto" style="color:#E5615A; font-size:13px;"></div>
+        <div class="modal-botones">
+          <button type="button" class="btn-secundario" id="btn-cancelar-producto">Cancelar</button>
+          <button type="submit" class="btn-primario">Guardar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: Nuevo / Editar servicio -->
+  <div class="modal-fondo" id="modal-servicio">
+    <div class="modal-caja">
+      <h2 id="titulo-modal-servicio">Nuevo servicio</h2>
+      <form id="form-servicio">
+        <input type="hidden" id="servicio-id">
+        <div class="campo">
+          <label for="servicio-nombre">Nombre del servicio</label>
+          <input type="text" id="servicio-nombre" required placeholder="Ej: Instalación de cámaras">
+        </div>
+        <div class="campo">
+          <label for="servicio-descripcion">Descripción</label>
+          <input type="text" id="servicio-descripcion">
+        </div>
+        <div class="campo">
+          <label for="servicio-precio">Precio</label>
+          <input type="number" id="servicio-precio" step="0.01">
+        </div>
+        <div id="mensaje-error-servicio" style="color:#E5615A; font-size:13px;"></div>
+        <div class="modal-botones">
+          <button type="button" class="btn-secundario" id="btn-cancelar-servicio">Cancelar</button>
+          <button type="submit" class="btn-primario">Guardar</button>
+        </div>
+      </form>
     </div>
   </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="js/supabaseClient.js"></script>
-<script>
-  (async () => {
-    const perfil = await protegerPagina("admin");
-    if (perfil) {
-      document.getElementById("nombre-usuario").textContent = perfil.nombre;
-    }
-  })();
-</script>
+<script src="js/admin.js"></script>
 </body>
 </html>
