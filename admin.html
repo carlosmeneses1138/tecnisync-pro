@@ -75,6 +75,10 @@
 
       <!-- VISTA: USUARIOS -->
       <div class="vista" id="vista-usuarios">
+        <div class="barra-acciones">
+          <input type="text" class="buscador" id="buscador-usuarios" placeholder="Buscar usuario...">
+          <button class="btn-primario" id="btn-nuevo-usuario">+ Nuevo usuario</button>
+        </div>
         <div class="tabla-wrap">
           <table class="tabla-datos">
             <thead>
@@ -82,17 +86,14 @@
                 <th>Nombre</th>
                 <th>Rol</th>
                 <th>ID de usuario</th>
+                <th>Acciones</th>
               </tr>
             </thead>
             <tbody id="tabla-usuarios-body">
-              <tr><td colspan="3" class="celda-vacia">Cargando usuarios...</td></tr>
+              <tr><td colspan="4" class="celda-vacia">Cargando usuarios...</td></tr>
             </tbody>
           </table>
         </div>
-        <p style="color:#9AA3B8; font-size:13px; margin-top:14px;">
-          Por ahora, para crear un nuevo vendedor o técnico, créalo desde Supabase → Authentication → Users,
-          y avísame su ID para vincularlo con su rol. En una próxima fase vamos a automatizar esto desde aquí mismo.
-        </p>
       </div>
     </div>
   </div>
@@ -154,6 +155,40 @@
         <div class="modal-botones">
           <button type="button" class="btn-secundario" id="btn-cancelar-servicio">Cancelar</button>
           <button type="submit" class="btn-primario">Guardar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: Nuevo usuario -->
+  <div class="modal-fondo" id="modal-usuario">
+    <div class="modal-caja">
+      <h2>Nuevo usuario</h2>
+      <form id="form-usuario">
+        <div class="campo">
+          <label for="usuario-nombre">Nombre completo</label>
+          <input type="text" id="usuario-nombre" required>
+        </div>
+        <div class="campo">
+          <label for="usuario-email">Correo</label>
+          <input type="email" id="usuario-email" required>
+        </div>
+        <div class="campo">
+          <label for="usuario-password">Contraseña</label>
+          <input type="password" id="usuario-password" required minlength="6" placeholder="Mínimo 6 caracteres">
+        </div>
+        <div class="campo">
+          <label for="usuario-rol">Módulo / Rol</label>
+          <select id="usuario-rol" class="campo-input">
+            <option value="vendedor">Vendedor</option>
+            <option value="tecnico">Técnico</option>
+            <option value="admin">Administrador</option>
+          </select>
+        </div>
+        <div id="mensaje-error-usuario" style="color:#E5615A; font-size:13px;"></div>
+        <div class="modal-botones">
+          <button type="button" class="btn-secundario" id="btn-cancelar-usuario">Cancelar</button>
+          <button type="submit" class="btn-primario" id="btn-guardar-usuario">Crear usuario</button>
         </div>
       </form>
     </div>

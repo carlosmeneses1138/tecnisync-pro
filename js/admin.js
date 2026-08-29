@@ -228,21 +228,94 @@ formServicio.addEventListener('submit', async (e) => {
 // USUARIOS (solo lectura por ahora)
 // ============================================
 
+let listaUsuarios = [];
+
 async function cargarUsuarios() {
   const { data, error } = await supabaseClient.from('perfiles').select('*').order('rol');
   const cuerpo = document.getElementById('tabla-usuarios-body');
   if (error) { cuerpo.innerHTML = `<tr><td colspan="3" class="celda-vacia">Error al cargar usuarios.</td></tr>`; return; }
 
-  if (data.length === 0) {
-    cuerpo.innerHTML = `<tr><td colspan="3" class="celda-vacia">No hay usuarios.</td></tr>`;
+  listaUsuarios = data;
+  dibujarUsuarios(listaUsuarios);
+}
+
+function dibujarUsuarios(usuarios) {
+  const cuerpo = document.getElementById('tabla-usuarios-body');
+  if (usuarios.length === 0) {
+    cuerpo.innerHTML = `<tr><td colspan="4" class="celda-vacia">No hay usuarios.</td></tr>`;
     return;
   }
 
-  cuerpo.innerHTML = data.map(u => `
+  cuerpo.innerHTML = usuarios.map(u => `
     <tr>
       <td>${escaparHtml(u.nombre)}</td>
       <td><span class="chip-tipo">${u.rol}</span></td>
       <td style="font-family: var(--fuente-mono); font-size:12px; color:#9AA3B8;">${u.id}</td>
+      <td class="acciones-fila">
+        <button class="btn-icono peligro" onclick="eliminarUsuario('${u.id}', '${escaparHtml(u.nombre)}')">Eliminar</button>
+      </td>
     </tr>
   `).join('');
 }
+
+async function eliminarUsuario(id, nombre) {
+  if (!confirm(`¿Seguro que quieres eliminar a "${nombre}"? Perderá acceso al sistema de inmediato.`)) return;
+
+  const { data, error } = await supabaseClient.functions.invoke('eliminar-usuario', {
+    body: { id_usuario: id }
+  });
+
+  if (error || (data && data.error)) {
+    alert((data && data.error) ? data.error : 'No se pudo eliminar el usuario.');
+    return;
+  }
+
+  cargarUsuarios();
+}
+
+document.getElementById('buscador-usuarios').addEventListener('input', (e) => {
+  const t = e.target.value.toLowerCase();
+  dibujarUsuarios(listaUsuarios.filter(u => u.nombre.toLowerCase().includes(t)));
+});
+
+const modalUsuario = document.getElementById('modal-usuario');
+const formUsuario = document.getElementById('form-usuario');
+
+document.getElementById('btn-nuevo-usuario').addEventListener('click', () => {
+  formUsuario.reset();
+  document.getElementById('mensaje-error-usuario').textContent = '';
+  modalUsuario.classList.add('activo');
+});
+
+document.getElementById('btn-cancelar-usuario').addEventListener('click', () => {
+  modalUsuario.classList.remove('activo');
+});
+
+formUsuario.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const mensajeError = document.getElementById('mensaje-error-usuario');
+  const botonGuardar = document.getElementById('btn-guardar-usuario');
+  mensajeError.textContent = '';
+  botonGuardar.disabled = true;
+  botonGuardar.textContent = 'Creando...';
+
+  const nombre = document.getElementById('usuario-nombre').value.trim();
+  const email = document.getElementById('usuario-email').value.trim();
+  const password = document.getElementById('usuario-password').value;
+  const rol = document.getElementById('usuario-rol').value;
+
+  const { data, error } = await supabaseClient.functions.invoke('crear-usuario', {
+    body: { nombre, email, password, rol }
+  });
+
+  botonGuardar.disabled = false;
+  botonGuardar.textContent = 'Crear usuario';
+
+  if (error || (data && data.error)) {
+    mensajeError.textContent = (data && data.error) ? data.error : 'No se pudo crear el usuario.';
+    return;
+  }
+
+  modalUsuario.classList.remove('activo');
+  cargarUsuarios();
+});
