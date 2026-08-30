@@ -18,20 +18,156 @@
 
     <div class="app-contenido">
       <h1>Módulo de Técnico</h1>
-      <p>Aquí encontrarás tus órdenes de servicio, con foto, ubicación GPS y firma de entrega.</p>
-      <div class="badge-fase">FASE 2 EN CONSTRUCCIÓN</div>
+      <p class="subtitulo">Gestiona clientes y registra tus órdenes de servicio con foto, ubicación y firma.</p>
+
+      <div class="tabs-modulo">
+        <button class="tab-modulo activo" data-vista="clientes">Clientes</button>
+        <button class="tab-modulo" data-vista="ordenes">Órdenes de servicio</button>
+      </div>
+
+      <!-- VISTA: CLIENTES -->
+      <div class="vista activa" id="vista-clientes">
+        <div class="barra-acciones">
+          <input type="text" class="buscador" id="buscador-clientes" placeholder="Buscar cliente por nombre...">
+          <button class="btn-primario" id="btn-nuevo-cliente">+ Nuevo cliente</button>
+        </div>
+        <div class="tabla-wrap">
+          <table class="tabla-datos">
+            <thead>
+              <tr>
+                <th>Nombre</th>
+                <th>Tipo</th>
+                <th>Teléfono</th>
+                <th>Ciudad</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="tabla-clientes-body">
+              <tr><td colspan="5" class="celda-vacia">Cargando clientes...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- VISTA: ÓRDENES DE SERVICIO -->
+      <div class="vista" id="vista-ordenes">
+
+        <div id="ordenes-listado">
+          <div class="barra-acciones">
+            <p class="subtitulo" style="margin:0;">Historial de órdenes de servicio</p>
+            <button class="btn-primario" id="btn-nueva-orden">+ Nueva orden</button>
+          </div>
+          <div id="lista-ordenes-contenedor">
+            <p class="subtitulo">Cargando órdenes...</p>
+          </div>
+        </div>
+
+        <div id="ordenes-formulario" style="display:none;">
+          <div class="barra-acciones">
+            <p class="subtitulo" style="margin:0;">Nueva orden de servicio</p>
+            <button class="btn-secundario" id="btn-volver-listado-ordenes" style="width:auto; padding:8px 16px;">← Volver</button>
+          </div>
+
+          <div class="seccion-venta">
+            <h3><span class="num">1</span> Cliente</h3>
+            <select id="orden-cliente" class="campo-input">
+              <option value="">Selecciona un cliente...</option>
+            </select>
+          </div>
+
+          <div class="seccion-venta">
+            <h3><span class="num">2</span> Servicio realizado</h3>
+            <select id="orden-servicio" class="campo-input" style="margin-bottom:12px;">
+              <option value="">Selecciona un servicio...</option>
+            </select>
+            <label style="display:block; font-size:12px; color:var(--gris-texto); margin-bottom:7px;">Notas / detalles del trabajo</label>
+            <input type="text" id="orden-notas" class="campo-input" placeholder="Ej: se cambió el router, se configuró la red...">
+          </div>
+
+          <div class="seccion-venta">
+            <h3><span class="num">3</span> Foto del trabajo realizado</h3>
+            <input type="file" accept="image/*" capture="environment" id="orden-foto-input">
+            <img id="orden-foto-preview" class="foto-preview">
+          </div>
+
+          <div class="seccion-venta">
+            <h3><span class="num">4</span> Ubicación</h3>
+            <button type="button" class="btn-secundario" id="btn-obtener-gps-orden" style="width:auto; padding:9px 16px;">📍 Obtener ubicación GPS</button>
+            <p class="estado-gps" id="estado-gps-orden">Todavía no se ha capturado la ubicación.</p>
+          </div>
+
+          <div class="seccion-venta">
+            <h3><span class="num">5</span> Firmas de conformidad</h3>
+            <div class="dos-columnas">
+              <div>
+                <div class="firma-caja"><canvas class="firma-canvas" id="firma-cliente-orden"></canvas></div>
+                <div class="firma-pie">
+                  <span>Firma del Cliente</span>
+                  <button type="button" class="btn-quitar" data-limpiar-orden="firma-cliente-orden">Limpiar</button>
+                </div>
+              </div>
+              <div>
+                <div class="firma-caja"><canvas class="firma-canvas" id="firma-tecnico-orden"></canvas></div>
+                <div class="firma-pie">
+                  <span>Firma del Técnico</span>
+                  <button type="button" class="btn-quitar" data-limpiar-orden="firma-tecnico-orden">Limpiar</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div id="mensaje-error-orden" style="color:#E5615A; font-size:13px; margin-bottom:10px;"></div>
+          <button type="button" class="btn-primario" id="btn-registrar-orden" style="width:100%; padding:14px;">Registrar orden de servicio</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: Nuevo / Editar cliente -->
+  <div class="modal-fondo" id="modal-cliente">
+    <div class="modal-caja">
+      <h2 id="titulo-modal-cliente">Nuevo cliente</h2>
+      <form id="form-cliente">
+        <input type="hidden" id="cliente-id">
+        <div class="campo">
+          <label for="cliente-nombre">Nombre completo o razón social</label>
+          <input type="text" id="cliente-nombre" required>
+        </div>
+        <div class="campo">
+          <label for="cliente-tipo">Tipo</label>
+          <select id="cliente-tipo" class="campo-input">
+            <option value="persona">Persona</option>
+            <option value="empresa">Empresa</option>
+            <option value="hogar">Hogar</option>
+          </select>
+        </div>
+        <div class="campo">
+          <label for="cliente-telefono">Teléfono</label>
+          <input type="text" id="cliente-telefono">
+        </div>
+        <div class="campo">
+          <label for="cliente-email">Correo</label>
+          <input type="email" id="cliente-email">
+        </div>
+        <div class="campo">
+          <label for="cliente-direccion">Dirección</label>
+          <input type="text" id="cliente-direccion">
+        </div>
+        <div class="campo">
+          <label for="cliente-ciudad">Ciudad</label>
+          <input type="text" id="cliente-ciudad">
+        </div>
+        <div id="mensaje-error-cliente" style="color:#E5615A; font-size:13px;"></div>
+        <div class="modal-botones">
+          <button type="button" class="btn-secundario" id="btn-cancelar-cliente">Cancelar</button>
+          <button type="submit" class="btn-primario">Guardar</button>
+        </div>
+      </form>
     </div>
   </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="js/supabaseClient.js"></script>
-<script>
-  (async () => {
-    const perfil = await protegerPagina("tecnico");
-    if (perfil) {
-      document.getElementById("nombre-usuario").textContent = perfil.nombre;
-    }
-  })();
-</script>
+<script src="js/tecnico.js"></script>
 </body>
 </html>
