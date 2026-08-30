@@ -14,6 +14,7 @@ let listaServicios = [];
   cargarProductos();
   cargarServicios();
   cargarUsuarios();
+  cargarGarantias();
 })();
 
 document.querySelectorAll('.tab-modulo').forEach(tab => {
@@ -381,4 +382,153 @@ formCambiarPassword.addEventListener('submit', async (e) => {
 
   modalCambiarPassword.classList.remove('activo');
   alert('Contraseña actualizada correctamente.');
+});
+
+// ============================================
+// GARANTÍAS
+// ============================================
+
+let listaGarantias = [];
+let listaVentasParaGarantia = [];
+let listaOrdenesParaGarantia = [];
+
+async function cargarGarantias() {
+  const contenedor = document.getElementById('lista-garantias-contenedor');
+  const { data, error } = await supabaseClient
+    .from('garantias')
+    .select('*, clientes(nombre)')
+    .order('creado_en', { ascending: false });
+
+  if (error) {
+    contenedor.innerHTML = '<p class="subtitulo">Error al cargar garantías.</p>';
+    return;
+  }
+
+  listaGarantias = data;
+  dibujarGarantias(listaGarantias);
+}
+
+function dibujarGarantias(garantias) {
+  const contenedor = document.getElementById('lista-garantias-contenedor');
+
+  if (garantias.length === 0) {
+    contenedor.innerHTML = '<p class="subtitulo">Todavía no hay garantías registradas.</p>';
+    return;
+  }
+
+  const hoy = new Date().toISOString().split('T')[0];
+
+  contenedor.innerHTML = garantias.map(g => {
+    const vigente = g.fecha_fin >= hoy;
+    return `
+      <div class="venta-tarjeta">
+        <div class="venta-tarjeta-cabeza">
+          <strong>${escaparHtml(g.clientes ? g.clientes.nombre : 'Cliente eliminado')}</strong>
+          <span class="badge-estado ${vigente ? 'vigente' : 'vencida'}">${vigente ? 'VIGENTE' : 'VENCIDA'}</span>
+        </div>
+        <div class="venta-tarjeta-detalle">
+          <span>${escaparHtml(g.descripcion || (g.tipo_origen === 'venta' ? 'Garantía de venta' : 'Garantía de servicio'))}</span>
+          <span>Desde: ${g.fecha_inicio}</span>
+          <span>Hasta: ${g.fecha_fin}</span>
+          ${g.condiciones ? `<span>Condiciones: ${escaparHtml(g.condiciones)}</span>` : ''}
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+document.getElementById('buscador-garantias').addEventListener('input', (e) => {
+  const t = e.target.value.toLowerCase();
+  dibujarGarantias(listaGarantias.filter(g => g.clientes && g.clientes.nombre.toLowerCase().includes(t)));
+});
+
+const modalGarantia = document.getElementById('modal-garantia');
+const formGarantia = document.getElementById('form-garantia');
+const selectTipoGarantia = document.getElementById('garantia-tipo');
+const selectOrigenGarantia = document.getElementById('garantia-origen');
+
+document.getElementById('btn-nueva-garantia').addEventListener('click', async () => {
+  formGarantia.reset();
+  document.getElementById('mensaje-error-garantia').textContent = '';
+  await cargarOrigenesGarantia();
+  modalGarantia.classList.add('activo');
+});
+
+document.getElementById('btn-cancelar-garantia').addEventListener('click', () => {
+  modalGarantia.classList.remove('activo');
+});
+
+selectTipoGarantia.addEventListener('change', cargarOrigenesGarantia);
+
+async function cargarOrigenesGarantia() {
+  const tipo = selectTipoGarantia.value;
+
+  if (tipo === 'venta') {
+    const { data } = await supabaseClient
+      .from('ventas')
+      .select('id, fecha, total, clientes(nombre)')
+      .order('fecha', { ascending: false })
+      .limit(50);
+    listaVentasParaGarantia = data || [];
+    selectOrigenGarantia.innerHTML = listaVentasParaGarantia.map(v =>
+      `<option value="${v.id}">${escaparHtml(v.clientes ? v.clientes.nombre : '—')} — $${Number(v.total).toLocaleString('es-CO')} — ${new Date(v.fecha).toLocaleDateString('es-CO')}</option>`
+    ).join('');
+  } else {
+    const { data } = await supabaseClient
+      .from('servicios_tecnicos')
+      .select('id, fecha, nombre_servicio, clientes(nombre)')
+      .order('fecha', { ascending: false })
+      .limit(50);
+    listaOrdenesParaGarantia = data || [];
+    selectOrigenGarantia.innerHTML = listaOrdenesParaGarantia.map(o =>
+      `<option value="${o.id}">${escaparHtml(o.clientes ? o.clientes.nombre : '—')} — ${escaparHtml(o.nombre_servicio || '')} — ${new Date(o.fecha).toLocaleDateString('es-CO')}</option>`
+    ).join('');
+  }
+}
+
+formGarantia.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const mensajeError = document.getElementById('mensaje-error-garantia');
+  mensajeError.textContent = '';
+
+  const tipo = selectTipoGarantia.value;
+  const origenId = selectOrigenGarantia.value;
+
+  if (!origenId) { mensajeError.textContent = 'Selecciona el registro de origen.'; return; }
+
+  let clienteId = null;
+  if (tipo === 'venta') {
+    const venta = listaVentasParaGarantia.find(v => v.id === origenId);
+    clienteId = venta ? venta.cliente_id : null;
+    // cliente_id no viene en el select anterior; lo buscamos directo
+    const { data: ventaCompleta } = await supabaseClient.from('ventas').select('cliente_id').eq('id', origenId).single();
+    clienteId = ventaCompleta ? ventaCompleta.cliente_id : null;
+  } else {
+    const { data: ordenCompleta } = await supabaseClient.from('servicios_tecnicos').select('cliente_id').eq('id', origenId).single();
+    clienteId = ordenCompleta ? ordenCompleta.cliente_id : null;
+  }
+
+  const meses = parseInt(document.getElementById('garantia-meses').value);
+  const fechaInicio = new Date();
+  const fechaFin = new Date();
+  fechaFin.setMonth(fechaFin.getMonth() + meses);
+
+  const datos = {
+    tipo_origen: tipo,
+    venta_id: tipo === 'venta' ? origenId : null,
+    servicio_tecnico_id: tipo === 'servicio' ? origenId : null,
+    cliente_id: clienteId,
+    descripcion: document.getElementById('garantia-descripcion').value.trim(),
+    fecha_inicio: fechaInicio.toISOString().split('T')[0],
+    fecha_fin: fechaFin.toISOString().split('T')[0],
+    condiciones: document.getElementById('garantia-condiciones').value.trim(),
+    creado_por: perfilActual.id
+  };
+
+  const { error } = await supabaseClient.from('garantias').insert(datos);
+
+  if (error) { mensajeError.textContent = 'No se pudo guardar la garantía.'; return; }
+
+  modalGarantia.classList.remove('activo');
+  cargarGarantias();
 });

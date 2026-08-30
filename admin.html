@@ -23,6 +23,7 @@
       <div class="tabs-modulo">
         <button class="tab-modulo activo" data-vista="productos">Productos</button>
         <button class="tab-modulo" data-vista="servicios">Servicios</button>
+        <button class="tab-modulo" data-vista="garantias">Garantías</button>
         <button class="tab-modulo" data-vista="usuarios">Usuarios</button>
       </div>
 
@@ -70,6 +71,17 @@
               <tr><td colspan="4" class="celda-vacia">Cargando servicios...</td></tr>
             </tbody>
           </table>
+        </div>
+      </div>
+
+      <!-- VISTA: GARANTÍAS -->
+      <div class="vista" id="vista-garantias">
+        <div class="barra-acciones">
+          <input type="text" class="buscador" id="buscador-garantias" placeholder="Buscar por cliente...">
+          <button class="btn-primario" id="btn-nueva-garantia">+ Nueva garantía</button>
+        </div>
+        <div id="lista-garantias-contenedor">
+          <p class="subtitulo">Cargando garantías...</p>
         </div>
       </div>
 
@@ -231,6 +243,49 @@
         <div class="modal-botones">
           <button type="button" class="btn-secundario" id="btn-cancelar-password">Cancelar</button>
           <button type="submit" class="btn-primario" id="btn-guardar-password">Guardar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: Nueva garantía -->
+  <div class="modal-fondo" id="modal-garantia">
+    <div class="modal-caja">
+      <h2>Nueva garantía</h2>
+      <form id="form-garantia">
+        <div class="campo">
+          <label for="garantia-tipo">¿La garantía es de...?</label>
+          <select id="garantia-tipo" class="campo-input">
+            <option value="venta">Una venta</option>
+            <option value="servicio">Un servicio técnico</option>
+          </select>
+        </div>
+        <div class="campo">
+          <label for="garantia-origen">Selecciona el registro</label>
+          <select id="garantia-origen" class="campo-input"></select>
+        </div>
+        <div class="campo">
+          <label for="garantia-descripcion">Descripción (ej: qué producto o parte queda cubierta)</label>
+          <input type="text" id="garantia-descripcion">
+        </div>
+        <div class="campo">
+          <label for="garantia-meses">Duración de la garantía</label>
+          <select id="garantia-meses" class="campo-input">
+            <option value="1">1 mes</option>
+            <option value="3">3 meses</option>
+            <option value="6" selected>6 meses</option>
+            <option value="12">12 meses</option>
+            <option value="24">24 meses</option>
+          </select>
+        </div>
+        <div class="campo">
+          <label for="garantia-condiciones">Condiciones</label>
+          <input type="text" id="garantia-condiciones" placeholder="Ej: no cubre daños por mal uso o agua">
+        </div>
+        <div id="mensaje-error-garantia" style="color:#E5615A; font-size:13px;"></div>
+        <div class="modal-botones">
+          <button type="button" class="btn-secundario" id="btn-cancelar-garantia">Cancelar</button>
+          <button type="submit" class="btn-primario">Guardar</button>
         </div>
       </form>
     </div>

@@ -648,3 +648,13 @@ canvas.firma-canvas {
 }
 
 .venta-tarjeta-detalle a { color: var(--ambar); text-decoration: none; }
+
+.badge-estado {
+  font-family: var(--fuente-mono);
+  font-size: 11px;
+  padding: 3px 10px;
+  border-radius: 12px;
+  font-weight: 500;
+}
+.badge-estado.vigente { background: rgba(76,175,125,0.15); color: var(--verde-ok); }
+.badge-estado.vencida { background: rgba(229,97,90,0.15); color: var(--rojo-error); }
