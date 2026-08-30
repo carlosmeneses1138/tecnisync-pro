@@ -74,12 +74,80 @@
 
       <!-- VISTA: VENTAS -->
       <div class="vista" id="vista-ventas">
-        <div class="tabla-wrap">
-          <table class="tabla-datos">
-            <tbody>
-              <tr><td class="celda-vacia">El registro de ventas con firma y ubicación llega en la próxima fase.</td></tr>
-            </tbody>
-          </table>
+
+        <!-- Sub-vista: listado -->
+        <div id="ventas-listado">
+          <div class="barra-acciones">
+            <p class="subtitulo" style="margin:0;">Historial de ventas registradas</p>
+            <button class="btn-primario" id="btn-nueva-venta">+ Nueva venta</button>
+          </div>
+          <div id="lista-ventas-contenedor">
+            <p class="subtitulo">Cargando ventas...</p>
+          </div>
+        </div>
+
+        <!-- Sub-vista: formulario de nueva venta -->
+        <div id="ventas-formulario" style="display:none;">
+          <div class="barra-acciones">
+            <p class="subtitulo" style="margin:0;">Nueva venta</p>
+            <button class="btn-secundario" id="btn-volver-listado" style="width:auto; padding:8px 16px;">← Volver</button>
+          </div>
+
+          <div class="seccion-venta">
+            <h3><span class="num">1</span> Cliente</h3>
+            <select id="venta-cliente" class="campo-input">
+              <option value="">Selecciona un cliente...</option>
+            </select>
+          </div>
+
+          <div class="seccion-venta">
+            <h3><span class="num">2</span> Productos</h3>
+            <div class="fila-agregar-producto">
+              <select id="venta-producto-select" class="campo-input"></select>
+              <input type="number" id="venta-producto-cantidad" min="1" value="1" placeholder="Cant.">
+              <button type="button" class="btn-primario" id="btn-agregar-producto" style="width:auto;">Agregar</button>
+            </div>
+            <div id="carrito-lista"></div>
+            <div class="carrito-total">
+              <span>Total</span>
+              <span id="carrito-total-monto">$0</span>
+            </div>
+          </div>
+
+          <div class="seccion-venta">
+            <h3><span class="num">3</span> Foto del trabajo / producto entregado</h3>
+            <input type="file" accept="image/*" capture="environment" id="venta-foto-input">
+            <img id="venta-foto-preview" class="foto-preview">
+          </div>
+
+          <div class="seccion-venta">
+            <h3><span class="num">4</span> Ubicación</h3>
+            <button type="button" class="btn-secundario" id="btn-obtener-gps" style="width:auto; padding:9px 16px;">📍 Obtener ubicación GPS</button>
+            <p class="estado-gps" id="estado-gps">Todavía no se ha capturado la ubicación.</p>
+          </div>
+
+          <div class="seccion-venta">
+            <h3><span class="num">5</span> Firmas de conformidad</h3>
+            <div class="dos-columnas">
+              <div>
+                <div class="firma-caja"><canvas class="firma-canvas" id="firma-cliente"></canvas></div>
+                <div class="firma-pie">
+                  <span>Firma del Cliente</span>
+                  <button type="button" class="btn-quitar" data-limpiar="firma-cliente">Limpiar</button>
+                </div>
+              </div>
+              <div>
+                <div class="firma-caja"><canvas class="firma-canvas" id="firma-vendedor"></canvas></div>
+                <div class="firma-pie">
+                  <span>Firma del Vendedor</span>
+                  <button type="button" class="btn-quitar" data-limpiar="firma-vendedor">Limpiar</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div id="mensaje-error-venta" style="color:#E5615A; font-size:13px; margin-bottom:10px;"></div>
+          <button type="button" class="btn-primario" id="btn-registrar-venta" style="width:100%; padding:14px;">Registrar venta</button>
         </div>
       </div>
     </div>
