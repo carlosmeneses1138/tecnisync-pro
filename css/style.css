@@ -723,3 +723,16 @@ canvas.firma-canvas {
 }
 .resumen-fila:last-child { border-bottom: none; }
 .resumen-fila span:last-child { color: var(--ambar); font-family: var(--fuente-mono); }
+
+.venta-tarjeta.cancelada {
+  opacity: 0.55;
+}
+.venta-tarjeta.cancelada .venta-tarjeta-cabeza strong {
+  text-decoration: line-through;
+}
+
+.venta-tarjeta-acciones {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+}

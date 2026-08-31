@@ -200,6 +200,24 @@
     </div>
   </div>
 
+  <!-- MODAL: Editar notas de venta -->
+  <div class="modal-fondo" id="modal-notas-venta">
+    <div class="modal-caja">
+      <h2>Notas de la venta</h2>
+      <form id="form-notas-venta">
+        <input type="hidden" id="notas-venta-id">
+        <div class="campo">
+          <label for="notas-venta-texto">Observaciones</label>
+          <input type="text" id="notas-venta-texto" placeholder="Ej: cliente pidió factura, entrega pendiente...">
+        </div>
+        <div class="modal-botones">
+          <button type="button" class="btn-secundario" id="btn-cancelar-notas-venta">Cancelar</button>
+          <button type="submit" class="btn-primario">Guardar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="js/supabaseClient.js"></script>
 <script src="js/vendedor.js"></script>

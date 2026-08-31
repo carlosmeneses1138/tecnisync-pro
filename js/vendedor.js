@@ -512,20 +512,66 @@ async function cargarVentas() {
   }
 
   contenedor.innerHTML = data.map(v => `
-    <div class="venta-tarjeta">
+    <div class="venta-tarjeta ${v.estado === 'cancelada' ? 'cancelada' : ''}">
       <div class="venta-tarjeta-cabeza">
         <strong>${escaparHtml(v.clientes ? v.clientes.nombre : 'Cliente eliminado')}</strong>
         <span>${new Date(v.fecha).toLocaleString('es-CO')}</span>
       </div>
       <div class="venta-tarjeta-detalle">
         <span>Total: $${Number(v.total).toLocaleString('es-CO')}</span>
+        ${v.estado === 'cancelada' ? '<span class="badge-estado vencida">CANCELADA</span>' : ''}
         ${v.foto_url ? `<a href="${v.foto_url}" target="_blank">Ver foto</a>` : ''}
         ${v.firma_cliente_url ? `<a href="${v.firma_cliente_url}" target="_blank">Firma cliente</a>` : ''}
         ${v.firma_vendedor_url ? `<a href="${v.firma_vendedor_url}" target="_blank">Firma vendedor</a>` : ''}
         ${v.latitud ? `<a href="https://www.google.com/maps?q=${v.latitud},${v.longitud}" target="_blank">Ver ubicación</a>` : ''}
       </div>
+      ${v.notas ? `<div class="venta-tarjeta-detalle" style="margin-top:6px;"><span>📝 ${escaparHtml(v.notas)}</span></div>` : ''}
+      ${v.estado !== 'cancelada' ? `
+        <div class="venta-tarjeta-acciones">
+          <button class="btn-icono" onclick="abrirNotasVenta('${v.id}', ${JSON.stringify(v.notas || '').replace(/"/g, '&quot;')})">Notas</button>
+          <button class="btn-icono peligro" onclick="cancelarVenta('${v.id}')">Cancelar venta</button>
+        </div>
+      ` : ''}
     </div>
   `).join('');
+}
+
+function abrirNotasVenta(id, notasActuales) {
+  document.getElementById('notas-venta-id').value = id;
+  document.getElementById('notas-venta-texto').value = notasActuales || '';
+  document.getElementById('modal-notas-venta').classList.add('activo');
+}
+
+document.getElementById('btn-cancelar-notas-venta').addEventListener('click', () => {
+  document.getElementById('modal-notas-venta').classList.remove('activo');
+});
+
+document.getElementById('form-notas-venta').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const id = document.getElementById('notas-venta-id').value;
+  const notas = document.getElementById('notas-venta-texto').value.trim();
+
+  const { error } = await supabaseClient.from('ventas').update({ notas }).eq('id', id);
+  if (error) { alert('No se pudieron guardar las notas.'); return; }
+
+  document.getElementById('modal-notas-venta').classList.remove('activo');
+  cargarVentas();
+});
+
+async function cancelarVenta(id) {
+  if (!confirm('¿Cancelar esta venta? El stock de los productos se devolverá automáticamente al inventario.')) return;
+
+  const { data, error } = await supabaseClient.functions.invoke('cancelar-venta', {
+    body: { venta_id: id }
+  });
+
+  if (error || (data && data.error)) {
+    alert((data && data.error) ? data.error : 'No se pudo cancelar la venta.');
+    return;
+  }
+
+  await cargarProductos();
+  await cargarVentas();
 }
 
 // ---------- Utilidad ----------

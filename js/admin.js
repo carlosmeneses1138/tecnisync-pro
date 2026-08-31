@@ -468,6 +468,7 @@ async function cargarOrigenesGarantia() {
     const { data } = await supabaseClient
       .from('ventas')
       .select('id, fecha, total, clientes(nombre)')
+      .eq('estado', 'activa')
       .order('fecha', { ascending: false })
       .limit(50);
     listaVentasParaGarantia = data || [];
@@ -478,6 +479,7 @@ async function cargarOrigenesGarantia() {
     const { data } = await supabaseClient
       .from('servicios_tecnicos')
       .select('id, fecha, nombre_servicio, clientes(nombre)')
+      .eq('estado', 'activa')
       .order('fecha', { ascending: false })
       .limit(50);
     listaOrdenesParaGarantia = data || [];
@@ -548,6 +550,7 @@ async function cargarResumen() {
   const { data: ventasHoy } = await supabaseClient
     .from('ventas')
     .select('total')
+    .eq('estado', 'activa')
     .gte('fecha', inicioHoy);
 
   const cantidadVentasHoy = ventasHoy ? ventasHoy.length : 0;
@@ -560,6 +563,7 @@ async function cargarResumen() {
   const { data: ventasMes } = await supabaseClient
     .from('ventas')
     .select('total')
+    .eq('estado', 'activa')
     .gte('fecha', inicioMes);
 
   const montoVentasMes = ventasMes ? ventasMes.reduce((s, v) => s + Number(v.total), 0) : 0;
@@ -569,6 +573,7 @@ async function cargarResumen() {
   const { data: serviciosHoy } = await supabaseClient
     .from('servicios_tecnicos')
     .select('id')
+    .eq('estado', 'activa')
     .gte('fecha', inicioHoy);
 
   document.getElementById('stat-servicios-hoy').textContent = serviciosHoy ? serviciosHoy.length : 0;

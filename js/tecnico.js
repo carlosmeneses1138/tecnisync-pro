@@ -352,18 +352,57 @@ async function cargarOrdenes() {
   }
 
   contenedor.innerHTML = data.map(o => `
-    <div class="venta-tarjeta">
+    <div class="venta-tarjeta ${o.estado === 'cancelada' ? 'cancelada' : ''}">
       <div class="venta-tarjeta-cabeza">
         <strong>${escaparHtml(o.clientes ? o.clientes.nombre : 'Cliente eliminado')}</strong>
         <span>${new Date(o.fecha).toLocaleString('es-CO')}</span>
       </div>
       <div class="venta-tarjeta-detalle">
         <span>${escaparHtml(o.nombre_servicio || 'Servicio')}</span>
+        ${o.estado === 'cancelada' ? '<span class="badge-estado vencida">CANCELADA</span>' : ''}
         ${o.foto_url ? `<a href="${o.foto_url}" target="_blank">Ver foto</a>` : ''}
         ${o.firma_cliente_url ? `<a href="${o.firma_cliente_url}" target="_blank">Firma cliente</a>` : ''}
         ${o.firma_tecnico_url ? `<a href="${o.firma_tecnico_url}" target="_blank">Firma técnico</a>` : ''}
         ${o.latitud ? `<a href="https://www.google.com/maps?q=${o.latitud},${o.longitud}" target="_blank">Ver ubicación</a>` : ''}
       </div>
+      ${o.notas ? `<div class="venta-tarjeta-detalle" style="margin-top:6px;"><span>📝 ${escaparHtml(o.notas)}</span></div>` : ''}
+      ${o.estado !== 'cancelada' ? `
+        <div class="venta-tarjeta-acciones">
+          <button class="btn-icono" onclick="abrirNotasOrden('${o.id}', ${JSON.stringify(o.notas || '').replace(/"/g, '&quot;')})">Notas</button>
+          <button class="btn-icono peligro" onclick="cancelarOrden('${o.id}')">Cancelar orden</button>
+        </div>
+      ` : ''}
     </div>
   `).join('');
+}
+
+function abrirNotasOrden(id, notasActuales) {
+  document.getElementById('notas-orden-id').value = id;
+  document.getElementById('notas-orden-texto').value = notasActuales || '';
+  document.getElementById('modal-notas-orden').classList.add('activo');
+}
+
+document.getElementById('btn-cancelar-notas-orden').addEventListener('click', () => {
+  document.getElementById('modal-notas-orden').classList.remove('activo');
+});
+
+document.getElementById('form-notas-orden').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const id = document.getElementById('notas-orden-id').value;
+  const notas = document.getElementById('notas-orden-texto').value.trim();
+
+  const { error } = await supabaseClient.from('servicios_tecnicos').update({ notas }).eq('id', id);
+  if (error) { alert('No se pudieron guardar las notas.'); return; }
+
+  document.getElementById('modal-notas-orden').classList.remove('activo');
+  cargarOrdenes();
+});
+
+async function cancelarOrden(id) {
+  if (!confirm('¿Cancelar esta orden de servicio?')) return;
+
+  const { error } = await supabaseClient.from('servicios_tecnicos').update({ estado: 'cancelada' }).eq('id', id);
+  if (error) { alert('No se pudo cancelar la orden.'); return; }
+
+  cargarOrdenes();
 }
