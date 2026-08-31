@@ -658,3 +658,68 @@ canvas.firma-canvas {
 }
 .badge-estado.vigente { background: rgba(76,175,125,0.15); color: var(--verde-ok); }
 .badge-estado.vencida { background: rgba(229,97,90,0.15); color: var(--rojo-error); }
+
+/* ---- Panel de resumen ---- */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  gap: 14px;
+  margin-bottom: 24px;
+}
+
+.stat-card {
+  background: var(--azul-panel);
+  border: 1px solid var(--azul-linea);
+  border-radius: 12px;
+  padding: 20px;
+}
+
+.stat-card .stat-etiqueta {
+  font-family: var(--fuente-mono);
+  font-size: 11px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--gris-texto);
+  margin-bottom: 10px;
+}
+
+.stat-card .stat-valor {
+  font-family: var(--fuente-display);
+  font-size: 26px;
+  font-weight: 600;
+}
+
+.stat-card .stat-sub {
+  font-size: 12px;
+  color: var(--gris-texto);
+  margin-top: 4px;
+}
+
+.stat-card.alerta { border-color: rgba(229,97,90,0.4); }
+.stat-card.alerta .stat-valor { color: var(--rojo-error); }
+
+.stat-card.ok-verde .stat-valor { color: var(--verde-ok); }
+
+.resumen-bloque {
+  background: var(--azul-panel);
+  border: 1px solid var(--azul-linea);
+  border-radius: 12px;
+  padding: 18px;
+  margin-bottom: 18px;
+}
+
+.resumen-bloque h3 {
+  font-family: var(--fuente-display);
+  font-size: 15px;
+  margin-bottom: 12px;
+}
+
+.resumen-fila {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--azul-linea);
+  font-size: 13px;
+}
+.resumen-fila:last-child { border-bottom: none; }
+.resumen-fila span:last-child { color: var(--ambar); font-family: var(--fuente-mono); }

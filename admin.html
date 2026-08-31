@@ -25,14 +25,53 @@
       <p class="subtitulo">Control total: productos, servicios y usuarios del sistema.</p>
 
       <div class="tabs-modulo">
-        <button class="tab-modulo activo" data-vista="productos">Productos</button>
+        <button class="tab-modulo activo" data-vista="resumen">Resumen</button>
+        <button class="tab-modulo" data-vista="productos">Productos</button>
         <button class="tab-modulo" data-vista="servicios">Servicios</button>
         <button class="tab-modulo" data-vista="garantias">Garantías</button>
         <button class="tab-modulo" data-vista="usuarios">Usuarios</button>
       </div>
 
+      <!-- VISTA: RESUMEN -->
+      <div class="vista activa" id="vista-resumen">
+        <div class="stats-grid" id="stats-grid-principal">
+          <div class="stat-card">
+            <div class="stat-etiqueta">Ventas hoy</div>
+            <div class="stat-valor" id="stat-ventas-hoy-cant">—</div>
+            <div class="stat-sub" id="stat-ventas-hoy-monto">—</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-etiqueta">Ventas del mes</div>
+            <div class="stat-valor" id="stat-ventas-mes-monto">—</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-etiqueta">Servicios hoy</div>
+            <div class="stat-valor" id="stat-servicios-hoy">—</div>
+          </div>
+          <div class="stat-card ok-verde">
+            <div class="stat-etiqueta">Garantías vigentes</div>
+            <div class="stat-valor" id="stat-garantias-vigentes">—</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-etiqueta">Garantías vencidas</div>
+            <div class="stat-valor" id="stat-garantias-vencidas">—</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-etiqueta">Clientes totales</div>
+            <div class="stat-valor" id="stat-clientes-total">—</div>
+          </div>
+        </div>
+
+        <div class="resumen-bloque">
+          <h3>⚠️ Productos con poco stock (menos de 5 unidades)</h3>
+          <div id="lista-stock-bajo">
+            <p class="subtitulo" style="margin:0;">Cargando...</p>
+          </div>
+        </div>
+      </div>
+
       <!-- VISTA: PRODUCTOS -->
-      <div class="vista activa" id="vista-productos">
+      <div class="vista" id="vista-productos">
         <div class="barra-acciones">
           <input type="text" class="buscador" id="buscador-productos" placeholder="Buscar producto...">
           <button class="btn-primario" id="btn-nuevo-producto">+ Nuevo producto</button>

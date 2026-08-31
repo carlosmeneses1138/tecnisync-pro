@@ -15,6 +15,7 @@ let listaServicios = [];
   cargarServicios();
   cargarUsuarios();
   cargarGarantias();
+  cargarResumen();
 })();
 
 document.querySelectorAll('.tab-modulo').forEach(tab => {
@@ -532,3 +533,77 @@ formGarantia.addEventListener('submit', async (e) => {
   modalGarantia.classList.remove('activo');
   cargarGarantias();
 });
+
+// ============================================
+// RESUMEN / REPORTES
+// ============================================
+
+async function cargarResumen() {
+  const ahora = new Date();
+  const inicioHoy = new Date(ahora.getFullYear(), ahora.getMonth(), ahora.getDate()).toISOString();
+  const inicioMes = new Date(ahora.getFullYear(), ahora.getMonth(), 1).toISOString();
+  const hoyISO = ahora.toISOString().split('T')[0];
+
+  // Ventas de hoy
+  const { data: ventasHoy } = await supabaseClient
+    .from('ventas')
+    .select('total')
+    .gte('fecha', inicioHoy);
+
+  const cantidadVentasHoy = ventasHoy ? ventasHoy.length : 0;
+  const montoVentasHoy = ventasHoy ? ventasHoy.reduce((s, v) => s + Number(v.total), 0) : 0;
+
+  document.getElementById('stat-ventas-hoy-cant').textContent = cantidadVentasHoy;
+  document.getElementById('stat-ventas-hoy-monto').textContent = '$' + montoVentasHoy.toLocaleString('es-CO');
+
+  // Ventas del mes
+  const { data: ventasMes } = await supabaseClient
+    .from('ventas')
+    .select('total')
+    .gte('fecha', inicioMes);
+
+  const montoVentasMes = ventasMes ? ventasMes.reduce((s, v) => s + Number(v.total), 0) : 0;
+  document.getElementById('stat-ventas-mes-monto').textContent = '$' + montoVentasMes.toLocaleString('es-CO');
+
+  // Servicios técnicos de hoy
+  const { data: serviciosHoy } = await supabaseClient
+    .from('servicios_tecnicos')
+    .select('id')
+    .gte('fecha', inicioHoy);
+
+  document.getElementById('stat-servicios-hoy').textContent = serviciosHoy ? serviciosHoy.length : 0;
+
+  // Garantías vigentes / vencidas
+  const { data: todasGarantias } = await supabaseClient.from('garantias').select('fecha_fin');
+  if (todasGarantias) {
+    const vigentes = todasGarantias.filter(g => g.fecha_fin >= hoyISO).length;
+    const vencidas = todasGarantias.length - vigentes;
+    document.getElementById('stat-garantias-vigentes').textContent = vigentes;
+    document.getElementById('stat-garantias-vencidas').textContent = vencidas;
+  }
+
+  // Clientes totales
+  const { count: totalClientes } = await supabaseClient
+    .from('clientes')
+    .select('*', { count: 'exact', head: true });
+  document.getElementById('stat-clientes-total').textContent = totalClientes ?? 0;
+
+  // Productos con stock bajo
+  const { data: stockBajo } = await supabaseClient
+    .from('productos')
+    .select('nombre, stock')
+    .lt('stock', 5)
+    .order('stock', { ascending: true });
+
+  const contenedorStock = document.getElementById('lista-stock-bajo');
+  if (!stockBajo || stockBajo.length === 0) {
+    contenedorStock.innerHTML = '<p class="subtitulo" style="margin:0;">Todos los productos tienen stock suficiente.</p>';
+  } else {
+    contenedorStock.innerHTML = stockBajo.map(p => `
+      <div class="resumen-fila">
+        <span>${escaparHtml(p.nombre)}</span>
+        <span>${p.stock} unidades</span>
+      </div>
+    `).join('');
+  }
+}
