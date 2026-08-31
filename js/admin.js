@@ -16,6 +16,11 @@ let listaServicios = [];
   cargarUsuarios();
   cargarGarantias();
   cargarResumen();
+
+  if ('Notification' in window && Notification.permission === 'granted') {
+    document.getElementById('btn-activar-avisos').textContent = '🔔 Avisos activados';
+    document.getElementById('btn-activar-avisos').disabled = true;
+  }
 })();
 
 document.querySelectorAll('.tab-modulo').forEach(tab => {
@@ -578,13 +583,43 @@ async function cargarResumen() {
 
   document.getElementById('stat-servicios-hoy').textContent = serviciosHoy ? serviciosHoy.length : 0;
 
-  // Garantías vigentes / vencidas
-  const { data: todasGarantias } = await supabaseClient.from('garantias').select('fecha_fin');
+  // Garantías vigentes / vencidas / por vencer pronto
+  const { data: todasGarantias } = await supabaseClient.from('garantias').select('*, clientes(nombre)');
   if (todasGarantias) {
     const vigentes = todasGarantias.filter(g => g.fecha_fin >= hoyISO).length;
     const vencidas = todasGarantias.length - vigentes;
     document.getElementById('stat-garantias-vigentes').textContent = vigentes;
     document.getElementById('stat-garantias-vencidas').textContent = vencidas;
+
+    const en15Dias = new Date();
+    en15Dias.setDate(en15Dias.getDate() + 15);
+    const en15DiasISO = en15Dias.toISOString().split('T')[0];
+
+    const porVencer = todasGarantias
+      .filter(g => g.fecha_fin >= hoyISO && g.fecha_fin <= en15DiasISO)
+      .sort((a, b) => a.fecha_fin.localeCompare(b.fecha_fin));
+
+    document.getElementById('stat-garantias-por-vencer').textContent = porVencer.length;
+
+    const bloque = document.getElementById('bloque-garantias-por-vencer');
+    const lista = document.getElementById('lista-garantias-por-vencer');
+
+    if (porVencer.length > 0) {
+      bloque.style.display = 'block';
+      lista.innerHTML = porVencer.map(g => {
+        const diasRestantes = Math.ceil((new Date(g.fecha_fin) - new Date(hoyISO)) / (1000 * 60 * 60 * 24));
+        return `
+          <div class="resumen-fila">
+            <span>${escaparHtml(g.clientes ? g.clientes.nombre : '—')} — ${escaparHtml(g.descripcion || '')}</span>
+            <span>${diasRestantes === 0 ? 'Vence hoy' : `Faltan ${diasRestantes} días`}</span>
+          </div>
+        `;
+      }).join('');
+
+      notificarGarantiasPorVencer(porVencer.length);
+    } else {
+      bloque.style.display = 'none';
+    }
   }
 
   // Clientes totales
@@ -611,4 +646,40 @@ async function cargarResumen() {
       </div>
     `).join('');
   }
+}
+
+// ============================================
+// AVISOS DEL NAVEGADOR (garantías por vencer)
+// ============================================
+
+document.getElementById('btn-activar-avisos').addEventListener('click', async () => {
+  const boton = document.getElementById('btn-activar-avisos');
+
+  if (!('Notification' in window)) {
+    alert('Tu navegador no soporta notificaciones.');
+    return;
+  }
+
+  const permiso = await Notification.requestPermission();
+
+  if (permiso === 'granted') {
+    boton.textContent = '🔔 Avisos activados';
+    boton.disabled = true;
+    new Notification('TecniSync Pro', { body: 'Los avisos quedaron activados correctamente.' });
+  } else {
+    alert('No se activaron los avisos. Puedes intentarlo de nuevo cuando quieras.');
+  }
+});
+
+let avisoGarantiasYaMostrado = false;
+
+function notificarGarantiasPorVencer(cantidad) {
+  if (avisoGarantiasYaMostrado) return;
+  if (!('Notification' in window) || Notification.permission !== 'granted') return;
+
+  new Notification('TecniSync Pro — Garantías por vencer', {
+    body: `Tienes ${cantidad} garantía(s) que vencen en los próximos 15 días.`
+  });
+
+  avisoGarantiasYaMostrado = true;
 }

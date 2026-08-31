@@ -34,6 +34,10 @@
 
       <!-- VISTA: RESUMEN -->
       <div class="vista activa" id="vista-resumen">
+        <div class="barra-acciones" style="margin-bottom:20px;">
+          <p class="subtitulo" style="margin:0;">Estado general del negocio</p>
+          <button class="btn-secundario" id="btn-activar-avisos" style="width:auto; padding:9px 16px;">🔔 Activar avisos del navegador</button>
+        </div>
         <div class="stats-grid" id="stats-grid-principal">
           <div class="stat-card">
             <div class="stat-etiqueta">Ventas hoy</div>
@@ -56,10 +60,19 @@
             <div class="stat-etiqueta">Garantías vencidas</div>
             <div class="stat-valor" id="stat-garantias-vencidas">—</div>
           </div>
+          <div class="stat-card alerta">
+            <div class="stat-etiqueta">Por vencer (15 días)</div>
+            <div class="stat-valor" id="stat-garantias-por-vencer">—</div>
+          </div>
           <div class="stat-card">
             <div class="stat-etiqueta">Clientes totales</div>
             <div class="stat-valor" id="stat-clientes-total">—</div>
           </div>
+        </div>
+
+        <div class="resumen-bloque" id="bloque-garantias-por-vencer" style="display:none;">
+          <h3>⏰ Garantías por vencer en los próximos 15 días</h3>
+          <div id="lista-garantias-por-vencer"></div>
         </div>
 
         <div class="resumen-bloque">
