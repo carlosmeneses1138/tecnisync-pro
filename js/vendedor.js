@@ -496,7 +496,7 @@ async function cargarVentas() {
   const contenedor = document.getElementById('lista-ventas-contenedor');
   const { data, error } = await supabaseClient
     .from('ventas')
-    .select('*, clientes(nombre)')
+    .select('*, clientes(nombre, telefono, direccion, ciudad)')
     .order('fecha', { ascending: false });
 
   if (error) {
@@ -526,12 +526,13 @@ async function cargarVentas() {
         ${v.latitud ? `<a href="https://www.google.com/maps?q=${v.latitud},${v.longitud}" target="_blank">Ver ubicación</a>` : ''}
       </div>
       ${v.notas ? `<div class="venta-tarjeta-detalle" style="margin-top:6px;"><span>📝 ${escaparHtml(v.notas)}</span></div>` : ''}
-      ${v.estado !== 'cancelada' ? `
-        <div class="venta-tarjeta-acciones">
+      <div class="venta-tarjeta-acciones">
+        <button class="btn-icono" onclick="generarReciboVenta('${v.id}')">📄 Recibo PDF</button>
+        ${v.estado !== 'cancelada' ? `
           <button class="btn-icono" onclick="abrirNotasVenta('${v.id}', ${JSON.stringify(v.notas || '').replace(/"/g, '&quot;')})">Notas</button>
           <button class="btn-icono peligro" onclick="cancelarVenta('${v.id}')">Cancelar venta</button>
-        </div>
-      ` : ''}
+        ` : ''}
+      </div>
     </div>
   `).join('');
 }
@@ -579,4 +580,125 @@ function escaparHtml(texto) {
   const div = document.createElement('div');
   div.textContent = texto || '';
   return div.innerHTML;
+}
+
+// ============================================
+// RECIBO EN PDF
+// ============================================
+
+async function urlAImagenBase64(url) {
+  try {
+    const respuesta = await fetch(url);
+    const blob = await respuesta.blob();
+    return await new Promise((resolve, reject) => {
+      const lector = new FileReader();
+      lector.onloadend = () => resolve(lector.result);
+      lector.onerror = reject;
+      lector.readAsDataURL(blob);
+    });
+  } catch (e) {
+    return null;
+  }
+}
+
+async function generarReciboVenta(ventaId) {
+  const venta = listaVentas.find(v => v.id === ventaId);
+  if (!venta) { alert('No se encontró la venta.'); return; }
+
+  const { data: items } = await supabaseClient
+    .from('venta_items')
+    .select('*')
+    .eq('venta_id', ventaId);
+
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF();
+  let y = 20;
+
+  doc.setFontSize(18);
+  doc.setTextColor(23, 27, 38);
+  doc.text('TecniSync Pro', 15, y);
+  doc.setFontSize(11);
+  doc.setTextColor(120, 120, 120);
+  doc.text('Comprobante de Venta', 15, y + 7);
+  if (venta.estado === 'cancelada') {
+    doc.setTextColor(220, 60, 50);
+    doc.text('*** VENTA CANCELADA ***', 140, y);
+  }
+
+  y += 20;
+  doc.setTextColor(0, 0, 0);
+  doc.setFontSize(10);
+  doc.text(`Fecha: ${new Date(venta.fecha).toLocaleString('es-CO')}`, 15, y);
+  y += 7;
+  doc.text(`Cliente: ${venta.clientes ? venta.clientes.nombre : '—'}`, 15, y);
+  y += 6;
+  if (venta.clientes && venta.clientes.telefono) { doc.text(`Teléfono: ${venta.clientes.telefono}`, 15, y); y += 6; }
+  if (venta.clientes && venta.clientes.direccion) { doc.text(`Dirección: ${venta.clientes.direccion}`, 15, y); y += 6; }
+  doc.text(`Vendedor: ${perfilActual.nombre}`, 15, y);
+  y += 12;
+
+  // Tabla de productos
+  doc.setFontSize(10);
+  doc.setFont(undefined, 'bold');
+  doc.text('Producto', 15, y);
+  doc.text('Cant.', 120, y);
+  doc.text('Precio', 145, y);
+  doc.text('Subtotal', 175, y);
+  doc.setFont(undefined, 'normal');
+  y += 3;
+  doc.line(15, y, 195, y);
+  y += 6;
+
+  (items || []).forEach(item => {
+    doc.text(item.nombre_producto, 15, y);
+    doc.text(String(item.cantidad), 120, y);
+    doc.text('$' + Number(item.precio_unitario).toLocaleString('es-CO'), 145, y);
+    doc.text('$' + (item.cantidad * item.precio_unitario).toLocaleString('es-CO'), 175, y);
+    y += 7;
+  });
+
+  y += 3;
+  doc.line(15, y, 195, y);
+  y += 8;
+  doc.setFontSize(13);
+  doc.setFont(undefined, 'bold');
+  doc.text(`TOTAL: $${Number(venta.total).toLocaleString('es-CO')}`, 15, y);
+  doc.setFont(undefined, 'normal');
+  y += 12;
+
+  if (venta.latitud) {
+    doc.setFontSize(9);
+    doc.setTextColor(100, 100, 100);
+    doc.text(`Ubicación registrada: ${venta.latitud.toFixed(5)}, ${venta.longitud.toFixed(5)}`, 15, y);
+    y += 10;
+    doc.setTextColor(0, 0, 0);
+  }
+
+  // Firmas
+  y += 5;
+  const anchoFirma = 75;
+  const altoFirma = 30;
+
+  try {
+    if (venta.firma_cliente_url) {
+      const imgCliente = await urlAImagenBase64(venta.firma_cliente_url);
+      if (imgCliente) doc.addImage(imgCliente, 'PNG', 15, y, anchoFirma, altoFirma);
+    }
+    if (venta.firma_vendedor_url) {
+      const imgVendedor = await urlAImagenBase64(venta.firma_vendedor_url);
+      if (imgVendedor) doc.addImage(imgVendedor, 'PNG', 110, y, anchoFirma, altoFirma);
+    }
+  } catch (e) { /* si falla una firma, seguimos sin ella */ }
+
+  y += altoFirma + 4;
+  doc.setFontSize(9);
+  doc.text('Firma del Cliente', 15, y);
+  doc.text('Firma del Vendedor', 110, y);
+
+  y += 15;
+  doc.setFontSize(8);
+  doc.setTextColor(150, 150, 150);
+  doc.text(`Generado el ${new Date().toLocaleString('es-CO')} — TecniSync Pro`, 15, y);
+
+  doc.save(`recibo_venta_${ventaId.slice(0, 8)}.pdf`);
 }

@@ -139,6 +139,7 @@ formCliente.addEventListener('submit', async (e) => {
 
 let fotoArchivoOrden = null;
 let coordenadasOrden = null;
+let listaOrdenes = [];
 const firmasEstadoOrden = {};
 
 async function cargarServiciosDisponibles() {
@@ -338,7 +339,7 @@ async function cargarOrdenes() {
   const contenedor = document.getElementById('lista-ordenes-contenedor');
   const { data, error } = await supabaseClient
     .from('servicios_tecnicos')
-    .select('*, clientes(nombre)')
+    .select('*, clientes(nombre, telefono, direccion, ciudad)')
     .order('fecha', { ascending: false });
 
   if (error) {
@@ -350,6 +351,8 @@ async function cargarOrdenes() {
     contenedor.innerHTML = '<p class="subtitulo">Todavía no has registrado ninguna orden de servicio.</p>';
     return;
   }
+
+  listaOrdenes = data;
 
   contenedor.innerHTML = data.map(o => `
     <div class="venta-tarjeta ${o.estado === 'cancelada' ? 'cancelada' : ''}">
@@ -366,12 +369,13 @@ async function cargarOrdenes() {
         ${o.latitud ? `<a href="https://www.google.com/maps?q=${o.latitud},${o.longitud}" target="_blank">Ver ubicación</a>` : ''}
       </div>
       ${o.notas ? `<div class="venta-tarjeta-detalle" style="margin-top:6px;"><span>📝 ${escaparHtml(o.notas)}</span></div>` : ''}
-      ${o.estado !== 'cancelada' ? `
-        <div class="venta-tarjeta-acciones">
+      <div class="venta-tarjeta-acciones">
+        <button class="btn-icono" onclick="generarReciboOrden('${o.id}')">📄 Recibo PDF</button>
+        ${o.estado !== 'cancelada' ? `
           <button class="btn-icono" onclick="abrirNotasOrden('${o.id}', ${JSON.stringify(o.notas || '').replace(/"/g, '&quot;')})">Notas</button>
           <button class="btn-icono peligro" onclick="cancelarOrden('${o.id}')">Cancelar orden</button>
-        </div>
-      ` : ''}
+        ` : ''}
+      </div>
     </div>
   `).join('');
 }
@@ -405,4 +409,108 @@ async function cancelarOrden(id) {
   if (error) { alert('No se pudo cancelar la orden.'); return; }
 
   cargarOrdenes();
+}
+
+// ============================================
+// RECIBO EN PDF
+// ============================================
+
+async function urlAImagenBase64(url) {
+  try {
+    const respuesta = await fetch(url);
+    const blob = await respuesta.blob();
+    return await new Promise((resolve, reject) => {
+      const lector = new FileReader();
+      lector.onloadend = () => resolve(lector.result);
+      lector.onerror = reject;
+      lector.readAsDataURL(blob);
+    });
+  } catch (e) {
+    return null;
+  }
+}
+
+async function generarReciboOrden(ordenId) {
+  const orden = listaOrdenes.find(o => o.id === ordenId);
+  if (!orden) { alert('No se encontró la orden.'); return; }
+
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF();
+  let y = 20;
+
+  doc.setFontSize(18);
+  doc.setTextColor(23, 27, 38);
+  doc.text('TecniSync Pro', 15, y);
+  doc.setFontSize(11);
+  doc.setTextColor(120, 120, 120);
+  doc.text('Orden de Servicio Técnico', 15, y + 7);
+  if (orden.estado === 'cancelada') {
+    doc.setTextColor(220, 60, 50);
+    doc.text('*** ORDEN CANCELADA ***', 140, y);
+  }
+
+  y += 20;
+  doc.setTextColor(0, 0, 0);
+  doc.setFontSize(10);
+  doc.text(`Fecha: ${new Date(orden.fecha).toLocaleString('es-CO')}`, 15, y);
+  y += 7;
+  doc.text(`Cliente: ${orden.clientes ? orden.clientes.nombre : '—'}`, 15, y);
+  y += 6;
+  if (orden.clientes && orden.clientes.telefono) { doc.text(`Teléfono: ${orden.clientes.telefono}`, 15, y); y += 6; }
+  if (orden.clientes && orden.clientes.direccion) { doc.text(`Dirección: ${orden.clientes.direccion}`, 15, y); y += 6; }
+  doc.text(`Técnico: ${perfilActual.nombre}`, 15, y);
+  y += 12;
+
+  doc.setFont(undefined, 'bold');
+  doc.text('Servicio realizado:', 15, y);
+  doc.setFont(undefined, 'normal');
+  y += 7;
+  doc.text(orden.nombre_servicio || '—', 15, y);
+  y += 10;
+
+  if (orden.notas) {
+    doc.setFont(undefined, 'bold');
+    doc.text('Notas:', 15, y);
+    doc.setFont(undefined, 'normal');
+    y += 7;
+    const notasDivididas = doc.splitTextToSize(orden.notas, 180);
+    doc.text(notasDivididas, 15, y);
+    y += notasDivididas.length * 6 + 6;
+  }
+
+  if (orden.latitud) {
+    doc.setFontSize(9);
+    doc.setTextColor(100, 100, 100);
+    doc.text(`Ubicación registrada: ${orden.latitud.toFixed(5)}, ${orden.longitud.toFixed(5)}`, 15, y);
+    y += 10;
+    doc.setTextColor(0, 0, 0);
+  }
+
+  // Firmas
+  y += 5;
+  const anchoFirma = 75;
+  const altoFirma = 30;
+
+  try {
+    if (orden.firma_cliente_url) {
+      const imgCliente = await urlAImagenBase64(orden.firma_cliente_url);
+      if (imgCliente) doc.addImage(imgCliente, 'PNG', 15, y, anchoFirma, altoFirma);
+    }
+    if (orden.firma_tecnico_url) {
+      const imgTecnico = await urlAImagenBase64(orden.firma_tecnico_url);
+      if (imgTecnico) doc.addImage(imgTecnico, 'PNG', 110, y, anchoFirma, altoFirma);
+    }
+  } catch (e) { /* si falla una firma, seguimos sin ella */ }
+
+  y += altoFirma + 4;
+  doc.setFontSize(9);
+  doc.text('Firma del Cliente', 15, y);
+  doc.text('Firma del Técnico', 110, y);
+
+  y += 15;
+  doc.setFontSize(8);
+  doc.setTextColor(150, 150, 150);
+  doc.text(`Generado el ${new Date().toLocaleString('es-CO')} — TecniSync Pro`, 15, y);
+
+  doc.save(`recibo_orden_${ordenId.slice(0, 8)}.pdf`);
 }
